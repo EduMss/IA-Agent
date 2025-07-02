@@ -89,23 +89,25 @@ cd seu-projeto
 pip install -r requirements.txt
 ```
 
-**3.** Configure seu .env com as credenciais e URLs necessárias:
+**3.** Configure seu .env com as credenciais e URLs necessárias
 
 **4.** Instale o Tesseract ORC e adicione no PATH do Windows 
 
-**5.** Faça o Download dos modelos no ollama:
+**5.** Descompacte o arquivo 'dependecias/Windows/sonar-scanner.rar' em 'dependecias/Windows/'
+
+**6.** Faça o Download dos modelos no ollama:
 ```
 ollama pull qwen2.5-coder:32b
 ollama pull mistral
 ollama pull llava:7b
 ```
 
-**6.** Inicie o servidor Ollama:
+**7.** Inicie o servidor Ollama:
 ```
 ollama serve
 ```
 
-**7.** Inicie o backend:
+**8.** Inicie o backend:
 ```
 uvicorn main:app --reload
 ```
