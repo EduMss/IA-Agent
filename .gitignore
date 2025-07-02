@@ -4,6 +4,7 @@ logs/
 project_temp/
 /**project_temp/
 .scannerwork/
+dependencias\Windows\sonar-scanner
 
 teste
 external-issues.json
