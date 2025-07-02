@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+chromadb
+pypdf
+requests
+python-multipart
+PyPDF2
+pymupdf 
+pytesseract 
+pillow
+python-dotenv
+gitpython

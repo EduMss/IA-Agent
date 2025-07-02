@@ -1,0 +1,4 @@
+https://github.com/UB-Mannheim/tesseract/wiki
+
+Após a instalação, adicione o caminho do tesseract instalado no PATH do windows
+"C:\Program Files\Tesseract-OCR"

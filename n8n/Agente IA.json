@@ -1,0 +1,690 @@
+{
+  "name": "Agente IA",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('Obter Mensagem').first().json.message.chat.id }}",
+        "text": "={{ $('Processar Mensagem no Modelo LLM').first().json.answer }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        740,
+        320
+      ],
+      "id": "91ccd286-6ccc-453e-9dd5-a0c81c804ac2",
+      "name": "Responder Mensagem",
+      "webhookId": "0d4793f5-23e8-47c1-b97f-35c7f10ad73e",
+      "credentials": {
+        "telegramApi": {
+          "id": "8kM25oNvxq02XPG4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        -220
+      ],
+      "id": "f4d5575e-b8df-4f33-be83-1c60b007937f",
+      "name": "Obter Mensagem",
+      "webhookId": "2f493251-e9ac-4bb6-9f4d-c4a9acea008d",
+      "credentials": {
+        "telegramApi": {
+          "id": "8kM25oNvxq02XPG4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env[\"URL_API\"] + \"/ask\" }}",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "question",
+              "value": "={{ $json.message.text }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        320
+      ],
+      "id": "85d7a1be-fd59-4c56-a7b1-c8a03ab3e883",
+      "name": "Processar Mensagem no Modelo LLM"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Obter Mensagem').first().json.message.chat.id }}",
+        "text": "={{\"Revise a mensagem enviada e tente novamente!\\n/enviar-documeto <Breve Descrição Para que serve o Documento enviado - Opcional>.\\nAnexe um arquivo .pdf junto da mensagem!\"}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        700,
+        -560
+      ],
+      "id": "b78fdf41-b304-464f-8660-ef9f477f2411",
+      "name": "Mensagem caso não tenha recebido o arquivo (acho que posso remover)",
+      "webhookId": "0d4793f5-23e8-47c1-b97f-35c7f10ad73e",
+      "credentials": {
+        "telegramApi": {
+          "id": "8kM25oNvxq02XPG4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ebfc7a33-71d3-4bde-a478-6fecad813b3f",
+              "leftValue": "={{ $('Obter Mensagem').first().json[\"message\"].document.file_id.toBoolean() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        360,
+        -720
+      ],
+      "id": "47546642-a668-42e8-a674-d758dce902bd",
+      "name": "Verificar se está enviando o arquivo (acho que posso remover)"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Obter Mensagem').first().json.message.caption?.startsWith('/enviar-documento') && !!$('Obter Mensagem').first().json.message.document?.file_id }}",
+                    "rightValue": "/enviar-documento",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "44d6ed07-ef7a-4316-971f-e22008226487"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0afc5264-5877-4fcb-9168-23fa4cbf7637",
+                    "leftValue": "={{ $('Obter Mensagem').first().json.message.text }}",
+                    "rightValue": "/enviar-documento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "35ff8d89-2387-4b57-8425-1aceeb68fb8b",
+                    "leftValue": "={{ $('Obter Mensagem').first().json.message.text?.startsWith('/analise')}}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "71dc5c38-c181-453a-8452-7a55fabee63e",
+                    "leftValue": "={{ $('Obter Mensagem').first().json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -60,
+        -240
+      ],
+      "id": "fe980826-788b-49e6-a948-815425da9a02",
+      "name": "Redirecionando para o tipo de mensagem"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Obter Mensagem').first().json.message.chat.id }}",
+        "text": "={{ $('HTTP Request Enviando Documento para Base de dados').first().json.status }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1680,
+        -740
+      ],
+      "id": "4d737890-f330-4ab6-85c9-f47bd6eee919",
+      "name": "Mensagem de sucesso do processamento do arquivo",
+      "webhookId": "0d4793f5-23e8-47c1-b97f-35c7f10ad73e",
+      "credentials": {
+        "telegramApi": {
+          "id": "8kM25oNvxq02XPG4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot{{ $env[\"TELEGRAM_BOT_KEY\"]  }}/getFile?file_id={{$('Obter Mensagem').first().json[\"message\"][\"document\"][\"file_id\"]}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        -740
+      ],
+      "id": "6fe67aaa-cfa1-4347-9d4e-dff3b08a2f1b",
+      "name": "HTTP Request Obter Path do arquivo"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/file/bot{{ $env[\"TELEGRAM_BOT_KEY\"]  }}/{{  $('HTTP Request Obter Path do arquivo').first().json[\"result\"][\"file_path\"] }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        -740
+      ],
+      "id": "ddca8a32-89c1-4225-8123-41cbd6ad7834",
+      "name": "HTTP Request Salvar arquivo"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env[\"URL_API\"] + \"/upload-pdf\" }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "description",
+              "value": "={{ $('Obter Mensagem').first().json.message.caption.replace(\"/enviar-documento \", \"\") }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        -740
+      ],
+      "id": "84759660-e1a5-477f-99f6-99be3c42fe70",
+      "name": "HTTP Request Enviando Documento para Base de dados",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst input = $('Obter Mensagem').first().json.message.text; // ou substitua por onde estiver sua mensagem\nconst regex = /repositorio:(\\S+)|projeto:(\\S+)|branch:(\\S+)/g;\nlet match;\nlet resultado = {\n  repositorio: null,\n  projeto: null,\n  branch: \"master\" // valor padrão\n};\n\nwhile ((match = regex.exec(input)) !== null) {\n  if (match[1]) resultado.repositorio = match[1];\n  if (match[2]) resultado.projeto = match[2];\n  if (match[3]) resultado.branch = match[3];\n}\n\nreturn [{ json: resultado }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -200
+      ],
+      "id": "8f5c5e49-6182-4ba9-ad6c-5dd2349ac2eb",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fc2329c6-e719-4b76-ad1e-99bbe1ebf6e1",
+              "leftValue": "={{ $('Code').first().json.repositorio }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "413fb36e-01d8-4368-b9a5-54f464becf9c",
+              "leftValue": "={{ $('Code').first().json.projeto }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        860,
+        -200
+      ],
+      "id": "55295676-12b2-4e3e-91bb-06f20abc4626",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env[\"URL_API\"] + \"/analyze\" }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"sonar_project_key\": \"{{ $('Code').first().json.projeto }}\",\n  \"project_git_url\": \"{{ $('Code').first().json.repositorio }}\",\n  \"project_git_branch\": \"{{ $('Code').first().json.branch }}\"\n}",
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        -300
+      ],
+      "id": "0d64acdd-4b02-4afc-baa5-1bf25b896cd0",
+      "name": "HTTP Request Analisar Codigo"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Obter Mensagem').first().json.message.chat.id }}",
+        "text": "={{\"Revise a mensagem enviada e tente novamente!\\n/analise\\nrepositorio:https://URL-REPOSITORIO-GIT>\\nprojeto:NOME-PROJETO-KEY-SONARQUBE\\nbranch:master - Opcional, padrão sempre será 'master'>\"}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1100,
+        -80
+      ],
+      "id": "17211e33-feb1-4526-a3e1-6a4190638d64",
+      "name": "Mensagem caso não tenha recebido o arquivo (acho que posso remover)2",
+      "webhookId": "0d4793f5-23e8-47c1-b97f-35c7f10ad73e",
+      "credentials": {
+        "telegramApi": {
+          "id": "8kM25oNvxq02XPG4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Obter Mensagem').first().json.message.chat.id }}",
+        "text": "={{ `Iniciando Analise do projeto: ` + $('Code').first().json.repositorio + \"\\nAguarde, você será notificado quando finalizarmos.\" }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1080,
+        -300
+      ],
+      "id": "c5397d17-582b-4d24-9fa2-32bade44d165",
+      "name": "Enviando Mensagem De analisando projeto",
+      "webhookId": "c17fd5ad-756d-4c19-924d-03a21b900a17",
+      "credentials": {
+        "telegramApi": {
+          "id": "8kM25oNvxq02XPG4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Obter Mensagem').first().json.message.chat.id }}",
+        "text": "={{ `Fim da Analise do projeto: ` + $('Code').first().json.repositorio }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1580,
+        -300
+      ],
+      "id": "797f2433-4085-4ce6-bd5f-34c31b478d5e",
+      "name": "Enviando Mensagem De analisando projeto1",
+      "webhookId": "c17fd5ad-756d-4c19-924d-03a21b900a17",
+      "credentials": {
+        "telegramApi": {
+          "id": "8kM25oNvxq02XPG4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Analizando Codigo",
+        "height": 460,
+        "width": 1480
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        480,
+        -340
+      ],
+      "typeVersion": 1,
+      "id": "2b13b3fe-80cd-4aad-bfcc-f8f61737719e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Enviando Documento para Base de Dados",
+        "height": 460,
+        "width": 1600
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        300,
+        -820
+      ],
+      "typeVersion": 1,
+      "id": "8d1bbf3e-408c-4848-8c43-7e062b88f098",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Resposdendo perguntas",
+        "height": 280,
+        "width": 680
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        280,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "47ffa178-d49a-4813-a4b5-f35f11cb87dd",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Obter Mensagem": {
+      "main": [
+        [
+          {
+            "node": "Redirecionando para o tipo de mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Mensagem no Modelo LLM": {
+      "main": [
+        [
+          {
+            "node": "Responder Mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar se está enviando o arquivo (acho que posso remover)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Obter Path do arquivo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mensagem caso não tenha recebido o arquivo (acho que posso remover)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redirecionando para o tipo de mensagem": {
+      "main": [
+        [
+          {
+            "node": "Verificar se está enviando o arquivo (acho que posso remover)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mensagem caso não tenha recebido o arquivo (acho que posso remover)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Processar Mensagem no Modelo LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Obter Path do arquivo": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Salvar arquivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Salvar arquivo": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Enviando Documento para Base de dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Enviando Documento para Base de dados": {
+      "main": [
+        [
+          {
+            "node": "Mensagem de sucesso do processamento do arquivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Enviando Mensagem De analisando projeto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mensagem caso não tenha recebido o arquivo (acho que posso remover)2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviando Mensagem De analisando projeto": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Analisar Codigo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Analisar Codigo": {
+      "main": [
+        [
+          {
+            "node": "Enviando Mensagem De analisando projeto1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7dfdd6e8-790c-462e-9469-527a972efadc",
+  "meta": {
+    "templateId": "self-building-ai-agent",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9b4fd6f96bdf593c84e42096cade41fba7352ceadff6c846952034ddf5f057a9"
+  },
+  "id": "ysHu1vgjyKLFc6UG",
+  "tags": []
+}
